@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { FirestoreDataConverter, deleteDoc, doc, getDoc } from 'firebase/firestore';
+import { FirestoreDataConverter, deleteDoc, doc, onSnapshot } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 import { auth, db } from '../../../firebase';
@@ -36,37 +36,39 @@ export default function PostEditorScreen() {
     const fetchPost = async () => {
       try {
         const postConverter: FirestoreDataConverter<Post> = {
-        toFirestore(post: Post) {
-          return post;
-        },
-        fromFirestore(snapshot, options) {
-          const data = snapshot.data(options)!;
-          return {
-            title: data.title,
-            content: data.content,
-            email: data.email,
-            postType: data.postType,
-            createdAt: data.createdAt,
-            updatedAt: data.updatedAt,
-            viewCount: data.viewCount,
-            commentCount: data.commentCount,
-            isDelete: data.isDelete,
-            thumbnailUrl: data.thumbnailUrl,
-          } as Post;
-        },
-      };
+          toFirestore(post: Post) {
+            return post;
+          },
+          fromFirestore(snapshot, options) {
+            const data = snapshot.data(options)!;
+            return {
+              title: data.title,
+              content: data.content,
+              email: data.email,
+              postType: data.postType,
+              createdAt: data.createdAt,
+              updatedAt: data.updatedAt,
+              viewCount: data.viewCount,
+              commentCount: data.commentCount,
+              isDelete: data.isDelete,
+              thumbnailUrl: data.thumbnailUrl,
+            } as Post;
+          },
+        };
 
-      const docRef = doc(db, 'posts', postId).withConverter(postConverter);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setPost(docSnap.data());
-      }else {
-          console.log('해당 게시물이 존재하지 않음');
-        }
+        const unsub = onSnapshot(doc(db, "posts", postId).withConverter(postConverter), (docSnap) => {
+          if (docSnap.exists()) {
+            setPost(docSnap.data());
+          }else {
+            console.log('해당 게시물이 존재하지 않음');
+          }
+        });
+
+        setLoading(false);
+
+        return () => unsub();
       } catch (error) {
         console.error('게시물 가져오기 오류: ', error);
-      } finally {
-        setLoading(false);
       }
     };
 
