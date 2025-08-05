@@ -17,7 +17,7 @@ export default function IndexScreen() {
       if (user) {
         console.log("로그인 유지됨:", user.email);
         // 로그인 상태면 메인 화면으로 바로 이동
-        router.replace("/main");
+        router.replace("/Main");
       }
       // 상태 확인 완료 → 로그인 화면 표시 여부 결정
       setCheckingAuth(false);

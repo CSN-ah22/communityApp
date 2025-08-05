@@ -14,7 +14,7 @@ export default function LoginScreen() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       console.log("로그인 성공");
-      router.push("/main") // 로그인 성공 후 메인 화면 이동
+      router.push("/Main") // 로그인 성공 후 메인 화면 이동
     } catch (e: any) {
       setError(e.message);
     }
@@ -62,7 +62,7 @@ export default function LoginScreen() {
           marginBottom: 10,
           borderRadius: 5,
         }}
-        onPress={() => router.push("/signup")}
+        onPress={() => router.push("/Signup")}
       >
         <Text style={{ color: "#fff", fontSize: 16 }}>회원가입</Text>
       </TouchableOpacity>
