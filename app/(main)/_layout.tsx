@@ -37,9 +37,17 @@ export default function MainLayout() {
         
       />
       <Tabs.Screen
-        name="PostEditor"
+        name="PostEditor/index"
         options={{ 
           title: "글쓰기",
+          tabBarIcon: ({ color }) => <MaterialIcons name="edit" size={28} color={color} />,  
+        }}
+      />
+      <Tabs.Screen
+        name="PostEditor/[id]"
+        options={{ 
+          href: null,
+          title: "상세보기",
           tabBarIcon: ({ color }) => <MaterialIcons name="edit" size={28} color={color} />,  
         }}
       />

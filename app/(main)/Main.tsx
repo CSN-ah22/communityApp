@@ -26,6 +26,7 @@ export default function MainScreen() {
     }
   };
 
+  // 게시글 목록 불러오기
   const fetchPosts = async () =>{
     const q = query(collection(db, "posts"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -36,17 +37,20 @@ export default function MainScreen() {
     return () => unsubscribe();
   };
 
-  const handlePress = async (item: any) => {
+  const viewPost = async (item: any) => {
     try {
       // 조회수 1 증가
       const postRef = doc(db, "posts", item.id);
       await updateDoc(postRef, {
         viewCount: increment(1),
+      });      
+      // console.log(`조회수 증가: ${item.title}`);
+
+      // 게시물 상세 페이지로 이동
+      router.push({
+        pathname: "/(main)/PostEditor/[id]",
+        params: { id: item.id },             
       });
-      
-      console.log(`조회수 증가: ${item.title}`);
-      // 상세 페이지 이동 (navigation을 사용하거나 router.push)
-      // router.push("/(main)/detail");      
     } catch (error) {
       console.error("조회수 증가 실패:", error);
     }
@@ -60,8 +64,8 @@ export default function MainScreen() {
         data={posts}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.item} onPress={() => handlePress(item)}>
-            <View style={styles.item}>
+          <TouchableOpacity style={styles.item} onPress={() => viewPost(item)}>
+            <View>
               <Text style={styles.title}>{item.title}</Text>
               <Text style={styles.content} numberOfLines={2}>
                 {item.content}
