@@ -28,7 +28,7 @@ export default function MainLayout() {
         }),
       }}>
       <Tabs.Screen
-        name="main"
+        name="Main"
         options={{
           title: "게시판",
           headerShown: false,
@@ -37,7 +37,7 @@ export default function MainLayout() {
         
       />
       <Tabs.Screen
-        name="write"
+        name="PostEditor"
         options={{ 
           title: "글쓰기",
           tabBarIcon: ({ color }) => <MaterialIcons name="edit" size={28} color={color} />,  

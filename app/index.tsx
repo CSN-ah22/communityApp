@@ -4,7 +4,7 @@ import { collection, getDocs } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 import { auth, db } from "../firebase";
-import LoginScreen from "./(auth)/login";
+import LoginScreen from "./(auth)/Login";
 
 export default function IndexScreen() {
   const [users, setUsers] = useState<any[]>([]);  
@@ -31,10 +31,10 @@ export default function IndexScreen() {
 
   // 사용자 목록 불러 오기(log찍기)
   const fetchUsers = async () => {
-    const querySnapshot = await getDocs(collection(db, "users"));
+    const q = await getDocs(collection(db, "users"));
     const userList: any[] = [];
-    querySnapshot.forEach((doc) => {
-      userList.push({ id: doc.id, ...doc.data() });
+    q.forEach((doc) => {
+      userList.push({ id: doc.id, ...doc.data()});
     });
     console.log("불러온 유저 목록:", userList);
 
