@@ -57,7 +57,7 @@ export default function MainScreen() {
   };
 
   return(
-    <View style={{ flex: 1, marginTop: "20%", justifyContent: "center", alignItems: "center", backgroundColor: "#fff"}}>
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#fff"}}>      
       <Text>메인화면</Text>
       <View style={styles.container}>
       <FlatList
