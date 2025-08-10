@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { FirestoreDataConverter, addDoc, collection, deleteDoc, doc, getDoc, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, FlatList, Image, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { auth, db } from '../../../firebase';
 
 interface Post {
@@ -40,6 +40,7 @@ export default function PostEditorScreen() {
   const userEmail = user?.email ?? ""; // 현재 로그인된 사용자의 email
 
   const router = useRouter();
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const fetchPost = async () => {
     try {
@@ -215,110 +216,136 @@ export default function PostEditorScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* 헤더 */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>게시물 상세</Text>
-        </View>
+      <KeyboardAvoidingView 
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 40}
+      >
+        <ScrollView 
+          ref={scrollViewRef}
+          style={styles.scrollView} 
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          onContentSizeChange={() => {
+            // 댓글 입력 시 자동으로 하단으로 스크롤
+            if (comment.trim()) {
+              scrollViewRef.current?.scrollToEnd({ animated: true });
+            }
+          }}
+        >
+          {/* 헤더 */}
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>게시물 상세</Text>
+          </View>
 
-        {/* 게시물 내용 */}
-        <View style={styles.postContainer}>
-          {/* 썸네일 이미지 */}
-          {post.thumbnailUrl !== "" && (
-            <View style={styles.imageContainer}>
-              {imageLoading && (
-                <View style={styles.imageLoadingOverlay}>
-                  <ActivityIndicator size="large" color="#007AFF" />
-                  <Text style={styles.imageLoadingText}>이미지 로딩 중...</Text>
+          {/* 게시물 내용 */}
+          <View style={styles.postContainer}>
+            {/* 썸네일 이미지 */}
+            {post.thumbnailUrl !== "" && (
+              <View style={styles.imageContainer}>
+                {imageLoading && (
+                  <View style={styles.imageLoadingOverlay}>
+                    <ActivityIndicator size="large" color="#007AFF" />
+                    <Text style={styles.imageLoadingText}>이미지 로딩 중...</Text>
+                  </View>
+                )}
+                <Image
+                  source={{ uri: post.thumbnailUrl }}
+                  style={styles.thumbnailImage}
+                  resizeMode="cover"
+                  onLoadStart={() => setImageLoading(true)}
+                  onLoadEnd={() => setImageLoading(false)}
+                  onError={() => setImageLoading(false)}
+                />
+              </View>
+            )}
+
+            {/* 게시물 정보 */}
+            <View style={styles.postInfo}>
+              <View style={styles.postHeader}>
+                <Text style={styles.postTitle}>{post.title}</Text>
+                <View style={styles.categoryBadge}>
+                  <Text style={styles.categoryText}>{post.postType}</Text>
+                </View>
+              </View>
+
+              <View style={styles.postMeta}>
+                <Text style={styles.authorText}>작성자: {post.email}</Text>
+                <View style={styles.statsContainer}>
+                  <View style={styles.statItem}>
+                    <Text style={styles.statLabel}>조회수</Text>
+                    <Text style={styles.statValue}>{post.viewCount}</Text>
+                  </View>
+                  <View style={styles.statItem}>
+                    <Text style={styles.statLabel}>댓글수</Text>
+                    <Text style={styles.statValue}>{comments?.length || 0}</Text>
+                  </View>
+                </View>
+              </View>
+
+              <View style={styles.contentContainer}>
+                <Text style={styles.contentText}>{post.content}</Text>
+              </View>
+
+              {/* 삭제 버튼 (작성자만 표시) */}
+              {userEmail === post.email && (
+                <TouchableOpacity style={styles.deleteButton} onPress={removePost}>
+                  <Text style={styles.deleteButtonText}>삭제하기</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+
+          {/* 댓글 섹션 */}
+          <View style={styles.commentsSection}>
+            <Text style={styles.commentsTitle}>댓글</Text>
+            
+            {/* 댓글 입력 */}
+            <View style={styles.commentInputContainer}>
+              <TextInput
+                style={styles.commentInput}
+                placeholder="댓글을 입력해주세요..."
+                value={comment}
+                onChangeText={(text) => setComment(text)}
+                multiline
+                onFocus={() => {
+                  // 댓글 입력 필드에 포커스될 때 자동 스크롤
+                  setTimeout(() => {
+                    scrollViewRef.current?.scrollToEnd({ animated: true });
+                  }, 300);
+                }}
+              />
+              <TouchableOpacity style={styles.commentSubmitButton} onPress={saveComment}>
+                <Text style={styles.commentSubmitText}>등록</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* 댓글 목록 */}
+            <FlatList
+              data={comments}
+              keyExtractor={(item) => item.id}
+              scrollEnabled={false}
+              renderItem={({ item }) => (
+                <View style={styles.commentItem}>
+                  <View style={styles.commentHeader}>
+                    <Text style={styles.commentAuthor}>{item.email}</Text>
+                    <Text style={styles.commentDate}>{item.createdAt}</Text>
+                  </View>
+                  <Text style={styles.commentText}>{item.comment}</Text>
                 </View>
               )}
-              <Image
-                source={{ uri: post.thumbnailUrl }}
-                style={styles.thumbnailImage}
-                resizeMode="cover"
-                onLoadStart={() => setImageLoading(true)}
-                onLoadEnd={() => setImageLoading(false)}
-                onError={() => setImageLoading(false)}
-              />
-            </View>
-          )}
-
-          {/* 게시물 정보 */}
-          <View style={styles.postInfo}>
-            <View style={styles.postHeader}>
-              <Text style={styles.postTitle}>{post.title}</Text>
-              <View style={styles.categoryBadge}>
-                <Text style={styles.categoryText}>{post.postType}</Text>
-              </View>
-            </View>
-
-            <View style={styles.postMeta}>
-              <Text style={styles.authorText}>작성자: {post.email}</Text>
-              <View style={styles.statsContainer}>
-                <View style={styles.statItem}>
-                  <Text style={styles.statLabel}>조회수</Text>
-                  <Text style={styles.statValue}>{post.viewCount}</Text>
+              ListEmptyComponent={
+                <View style={styles.emptyComments}>
+                  <Text style={styles.emptyCommentsText}>아직 댓글이 없습니다.</Text>
                 </View>
-                <View style={styles.statItem}>
-                  <Text style={styles.statLabel}>댓글수</Text>
-                  <Text style={styles.statValue}>{comments?.length || 0}</Text>
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.contentContainer}>
-              <Text style={styles.contentText}>{post.content}</Text>
-            </View>
-
-            {/* 삭제 버튼 (작성자만 표시) */}
-            {userEmail === post.email && (
-              <TouchableOpacity style={styles.deleteButton} onPress={removePost}>
-                <Text style={styles.deleteButtonText}>삭제하기</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-
-        {/* 댓글 섹션 */}
-        <View style={styles.commentsSection}>
-          <Text style={styles.commentsTitle}>댓글</Text>
-          
-          {/* 댓글 입력 */}
-          <View style={styles.commentInputContainer}>
-            <TextInput
-              style={styles.commentInput}
-              placeholder="댓글을 입력해주세요..."
-              value={comment}
-              onChangeText={(text) => setComment(text)}
-              multiline
+              }
             />
-            <TouchableOpacity style={styles.commentSubmitButton} onPress={saveComment}>
-              <Text style={styles.commentSubmitText}>등록</Text>
-            </TouchableOpacity>
           </View>
-
-          {/* 댓글 목록 */}
-          <FlatList
-            data={comments}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
-            renderItem={({ item }) => (
-              <View style={styles.commentItem}>
-                <View style={styles.commentHeader}>
-                  <Text style={styles.commentAuthor}>{item.email}</Text>
-                  <Text style={styles.commentDate}>{item.createdAt}</Text>
-                </View>
-                <Text style={styles.commentText}>{item.comment}</Text>
-              </View>
-            )}
-            ListEmptyComponent={
-              <View style={styles.emptyComments}>
-                <Text style={styles.emptyCommentsText}>아직 댓글이 없습니다.</Text>
-              </View>
-            }
-          />
-        </View>
-      </ScrollView>
+          
+          {/* 하단 여백 */}
+          <View style={styles.bottomSpacing} />
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -361,6 +388,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   scrollView: {
     flex: 1,
@@ -563,5 +593,8 @@ const styles = StyleSheet.create({
   emptyCommentsText: {
     fontSize: 16,
     color: '#888',
+  },
+  bottomSpacing: {
+    height: 100, // 하단 여백을 위한 빈 공간
   },
 });
