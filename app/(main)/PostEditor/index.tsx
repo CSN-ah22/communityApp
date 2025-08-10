@@ -1,9 +1,10 @@
 import uploadImageAsync from '@/utils/uploadImage';
 import { Picker } from "@react-native-picker/picker";
 import { useIsFocused } from "@react-navigation/native";
+import { router } from 'expo-router';
 import { addDoc, collection } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import 'react-native-get-random-values';
 import 'react-native-url-polyfill/auto';
 import { ImagePickerButton, ImagePickerButtonRef } from "../../../components/ImagePickerButton";
@@ -98,7 +99,19 @@ export default function PostEditorScreen() {
       // 3) 초기화
       setPost({ ...initialPost, email: userEmail });
       imagePickerRef.current?.clear();
-      alert("게시글이 등록되었습니다.");
+      Alert.alert(
+        "게시글 등록 완료",
+        "게시시글이 성공적으로 등록되었습니다.",
+        [
+          {
+            text: "확인", 
+            onPress: () => {
+              // Alert에서 "확인"을 누르면 홈 화면(목록 화면)으로 이동
+              router.push('/Main');  // React Navigation에서 Main 화면으로 이동
+            }
+          }
+        ]
+      );
     } catch (error:any) {
       console.log("code:", error?.code);
       console.log("message:", error?.message);
