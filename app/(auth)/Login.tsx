@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import React, { useState } from "react";
-import { SafeAreaView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { auth } from "../../firebase";
 
 export default function LoginScreen() {
@@ -24,70 +24,83 @@ export default function LoginScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       
-      <View style={styles.container}>
-        {/* 헤더 */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>커뮤니티</Text>
-          <Text style={styles.headerSubtitle}>로그인하여 시작하세요</Text>
-        </View>
-
-        {/* 로그인 폼 */}
-        <View style={styles.formContainer}>
-          {error ? (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error}</Text>
+      <KeyboardAvoidingView 
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+      >
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.container}>
+            {/* 헤더 */}
+            <View style={styles.header}>
+              <Text style={styles.headerTitle}>커뮤니티</Text>
+              <Text style={styles.headerSubtitle}>로그인하여 시작하세요</Text>
             </View>
-          ) : null}
 
-          {/* 이메일 입력 */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>이메일</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="이메일을 입력해주세요"
-              placeholderTextColor="#999"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
+            {/* 로그인 폼 */}
+            <View style={styles.formContainer}>
+              {error ? (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>{error}</Text>
+                </View>
+              ) : null}
+
+              {/* 이메일 입력 */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>이메일</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="이메일을 입력해주세요"
+                  placeholderTextColor="#999"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+
+              {/* 비밀번호 입력 */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>비밀번호</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="비밀번호를 입력해주세요"
+                  placeholderTextColor="#999"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                  autoCapitalize="none"
+                />
+              </View>
+
+              {/* 로그인 버튼 */}
+              <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+                <Text style={styles.loginButtonText}>로그인</Text>
+              </TouchableOpacity>
+
+              {/* 구분선 */}
+              <View style={styles.divider}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>또는</Text>
+                <View style={styles.dividerLine} />
+              </View>
+
+              {/* 회원가입 버튼 */}
+              <TouchableOpacity 
+                style={styles.signupButton} 
+                onPress={() => router.push("/Signup")}
+              >
+                <Text style={styles.signupButtonText}>회원가입</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-
-          {/* 비밀번호 입력 */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>비밀번호</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="비밀번호를 입력해주세요"
-              placeholderTextColor="#999"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-            />
-          </View>
-
-          {/* 로그인 버튼 */}
-          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-            <Text style={styles.loginButtonText}>로그인</Text>
-          </TouchableOpacity>
-
-          {/* 구분선 */}
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>또는</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          {/* 회원가입 버튼 */}
-          <TouchableOpacity 
-            style={styles.signupButton} 
-            onPress={() => router.push("/Signup")}
-          >
-            <Text style={styles.signupButtonText}>회원가입</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -96,6 +109,17 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingBottom: 50,
   },
   container: {
     flex: 1,
