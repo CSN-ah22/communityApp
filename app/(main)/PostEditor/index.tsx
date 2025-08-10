@@ -4,7 +4,7 @@ import { useIsFocused } from "@react-navigation/native";
 import { router } from 'expo-router';
 import { addDoc, collection } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Alert, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import 'react-native-get-random-values';
 import 'react-native-url-polyfill/auto';
 import { ImagePickerButton, ImagePickerButtonRef } from "../../../components/ImagePickerButton";
@@ -26,6 +26,7 @@ export default function PostEditorScreen() {
   const user = auth.currentUser;
   const userEmail = user?.email ?? ""; // 현재 로그인된 사용자의 email
   const imagePickerRef = useRef<ImagePickerButtonRef>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const initialPost: Post = {
     title: "",
@@ -48,6 +49,11 @@ export default function PostEditorScreen() {
   useEffect(() => {
     setPost(initialPost);
     imagePickerRef.current?.clear(); // 이미지 초기화 호출
+    
+    // 화면이 포커스될 때 스크롤 위치를 상단으로 초기화
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ y: 0, animated: false });
+    }
   },[isFocused])
   
 
@@ -127,86 +133,108 @@ export default function PostEditorScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       
-      {/* 헤더 */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>게시글 작성</Text>
-      </View>
-
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* 제목 입력 */}
-        <View style={styles.inputSection}>
-          <Text style={styles.label}>제목</Text>
-          <TextInput
-            style={styles.titleInput}
-            placeholder="제목을 입력해주세요"
-            placeholderTextColor="#999"
-            value={post.title}
-            onChangeText={(text) => handleChange("title", text)}
-          />
+      <KeyboardAvoidingView 
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 20 : 40}
+      >
+        {/* 헤더 */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>게시글 작성</Text>
         </View>
 
-        {/* 게시물 유형 선택 */}
-        <View style={styles.inputSection}>
-          <Text style={styles.label}>게시물 유형</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={post.postType}
-              onValueChange={(itemValue) => handleChange("postType", itemValue)}
-              style={styles.picker}
-            >
-              <Picker.Item label="공지사항" value="공지사항" />
-              <Picker.Item label="자유글" value="자유글" />
-              <Picker.Item label="Q&A" value="Q&A" />
-            </Picker>
-          </View>
-        </View>
-
-        {/* 내용 입력 */}
-        <View style={styles.inputSection}>
-          <Text style={styles.label}>내용</Text>
-          <TextInput
-            style={styles.contentInput}
-            placeholder="내용을 입력해주세요"
-            placeholderTextColor="#999"
-            value={post.content}
-            onChangeText={(text) => handleChange("content", text)}
-            multiline
-            textAlignVertical="top"
-          />
-        </View>
-
-        {/* 이미지 선택 */}
-        <View style={styles.inputSection}>
-          <Text style={styles.label}>이미지 첨부</Text>
-          <View style={styles.imagePickerContainer}>
-            <ImagePickerButton 
-              ref={imagePickerRef} 
-              onPicked={(uri) => handleChange("thumbnailUrl", uri)} 
+        <ScrollView 
+          ref={scrollViewRef}
+          style={styles.container} 
+          showsVerticalScrollIndicator={false}
+          onContentSizeChange={() => {
+            scrollViewRef.current?.scrollToEnd({ animated: true });
+          }}
+        >
+          {/* 제목 입력 */}
+          <View style={styles.inputSection}>
+            <Text style={styles.label}>제목</Text>
+            <TextInput
+              style={styles.titleInput}
+              placeholder="제목을 입력해주세요"
+              placeholderTextColor="#999"
+              value={post.title}
+              onChangeText={(text) => handleChange("title", text)}
             />
           </View>
-        </View>
 
-        {/* 등록 버튼 */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity 
-            style={[styles.submitButton, isLoading && styles.submitButtonDisabled]} 
-            onPress={handleSubmit}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="small" color="#fff" />
-                <Text style={styles.submitButtonText}>등록 중...</Text>
-              </View>
-            ) : (
-              <Text style={styles.submitButtonText}>게시글 등록</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-        
-        {/* 하단 여백 */}
-        <View style={styles.bottomSpacing} />
-      </ScrollView>
+          {/* 게시물 유형 선택 */}
+          <View style={styles.inputSection}>
+            <Text style={styles.label}>게시물 유형</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={post.postType}
+                onValueChange={(itemValue) => handleChange("postType", itemValue)}
+                style={styles.picker}
+              >
+                <Picker.Item label="공지사항" value="공지사항" />
+                <Picker.Item label="자유글" value="자유글" />
+                <Picker.Item label="Q&A" value="Q&A" />
+              </Picker>
+            </View>
+          </View>
+
+          {/* 내용 입력 */}
+          <View style={styles.inputSection}>
+            <Text style={styles.label}>내용</Text>
+            <TextInput
+              style={styles.contentInput}
+              placeholder="내용을 입력해주세요"
+              placeholderTextColor="#999"
+              value={post.content}
+              onChangeText={(text) => handleChange("content", text)}
+              multiline
+              textAlignVertical="top"
+              onFocus={() => {
+                // 내용 입력 필드에 포커스될 때 적절한 위치로 스크롤
+                setTimeout(() => {
+                  scrollViewRef.current?.scrollTo({
+                    y: 150, // 헤더 높이 + 여유 공간
+                    animated: true
+                  });
+                }, 300);
+              }}
+            />
+          </View>
+
+          {/* 이미지 선택 */}
+          <View style={styles.inputSection}>
+            <Text style={styles.label}>이미지 첨부</Text>
+            <View style={styles.imagePickerContainer}>
+              <ImagePickerButton 
+                ref={imagePickerRef} 
+                onPicked={(uri) => handleChange("thumbnailUrl", uri)} 
+              />
+            </View>
+          </View>
+
+          {/* 등록 버튼 */}
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity 
+              style={[styles.submitButton, isLoading && styles.submitButtonDisabled]} 
+              onPress={handleSubmit}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="small" color="#fff" />
+                  <Text style={styles.submitButtonText}>등록 중...</Text>
+                </View>
+              ) : (
+                <Text style={styles.submitButtonText}>게시글 등록</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+          
+          {/* 하단 여백 */}
+          <View style={styles.bottomSpacing} />
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -311,5 +339,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
 });
