@@ -31,7 +31,7 @@ export default function PostEditorScreen() {
   const postId = Array.isArray(id) ? id[0] : id;
 
   const [post, setPost] =  useState<Post | null>(null);
-  const [comments, setComments] = useState<Comments[] | null>(null);
+  const [comments, setComments] = useState<Comments[]>([]);
   const [loading, setLoading] = useState(true);
   const [comment, setComment] = useState("");
   const [imageLoading, setImageLoading] = useState(false);
