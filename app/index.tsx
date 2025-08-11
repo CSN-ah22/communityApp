@@ -15,7 +15,6 @@ export default function IndexScreen() {
     // 앱 실행 시 Firebase 로그인 상태 확인
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        console.log("로그인 유지됨:", user.email);
         // 로그인 상태면 메인 화면으로 바로 이동
         router.replace("/Main");
       }
@@ -29,14 +28,14 @@ export default function IndexScreen() {
   }, []);
 
 
-  // 사용자 목록 불러 오기(log찍기)
+  // 사용자 목록 조회
   const fetchUsers = async () => {
     const q = await getDocs(collection(db, "users"));
     const userList: any[] = [];
     q.forEach((doc) => {
       userList.push({ id: doc.id, ...doc.data()});
     });
-    console.log("불러온 유저 목록:", userList);
+    // console.log("불러온 유저 목록:", userList);
 
     setUsers(userList);
   };  

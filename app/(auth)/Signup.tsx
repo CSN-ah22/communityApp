@@ -19,6 +19,10 @@ export default function SignupScreen() {
   const passwordInputRef = useRef<TextInput>(null);
   const scrollViewRef = useRef<ScrollView>(null);
 
+
+  // **********************************************************************************************
+  // 회원가입 요청
+  // **********************************************************************************************
   const handleSignup = async () => {
     try {
       if(emailCheck.trim()){
@@ -56,7 +60,7 @@ export default function SignupScreen() {
       setIsLoading(false);
     }
   };
-
+  // **********************************************************************************************
 
 
   // **********************************************************************************************

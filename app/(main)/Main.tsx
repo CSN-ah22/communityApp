@@ -26,9 +26,12 @@ export default function MainScreen() {
     }
   };
 
+
+  // **********************************************************************************************
   // 게시글 목록 불러오기
+  // **********************************************************************************************
   const fetchPosts = async () =>{
-    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+    const q = query(collection(db, "posts"), orderBy("createdAt", "desc")); // 날짜별 최신순
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const postList: any[] = [];
       snapshot.forEach((doc) => postList.push({ id: doc.id, ...doc.data() }));
@@ -36,7 +39,12 @@ export default function MainScreen() {
     });
     return () => unsubscribe();
   };
+  // **********************************************************************************************
 
+
+  // **********************************************************************************************
+  // 조회수 증가 동작
+  // **********************************************************************************************
   const viewPost = async (item: any) => {
     try {
       // 조회수 증가 저장
@@ -55,7 +63,10 @@ export default function MainScreen() {
       console.error("조회수 증가 실패:", error);
     }
   };
+  // **********************************************************************************************
 
+
+  
   return(
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />

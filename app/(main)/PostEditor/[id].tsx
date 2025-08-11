@@ -42,6 +42,9 @@ export default function PostEditorScreen() {
   const router = useRouter();
   const scrollViewRef = useRef<ScrollView>(null);
 
+  // **********************************************************************************************
+  // 게시물 리스트 조회
+  // **********************************************************************************************
   const fetchPost = async () => {
     try {
       const postConverter: FirestoreDataConverter<Post> = {
@@ -80,13 +83,17 @@ export default function PostEditorScreen() {
       console.error('게시물 가져오기 오류: ', error);
     }
   };
+  // **********************************************************************************************
 
+
+  // **********************************************************************************************
+  // 댓글 리스트 조회
+  // **********************************************************************************************
   const fetchComments = async() => {
     try {
       const commentsRef = collection(db, 'comments');
       const q = query(commentsRef, where('postId', '==', postId));
 
-      // onSnapshot을 사용하여 실시간 데이터 추적
       const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const commentsList: Comments[] = querySnapshot.docs.map((doc) => {
           const data = doc.data();
@@ -95,7 +102,7 @@ export default function PostEditorScreen() {
             postId: data.postId,
             email: data.email,
             comment: data.comment,
-            createdAt: data.createdAt.split('T')[0],
+            createdAt: data.createdAt.split('T')[0], //2025-08-10T14:44:26.212Z 'T'이전 글자만 사용
           };
         });
 
@@ -103,13 +110,14 @@ export default function PostEditorScreen() {
         setComments(commentsList);
       });
 
-      // return unsub 함수로 구독 취소할 수 있게 만듬
+      // DB 실시간 구독 취소
       return () => unsubscribe();
 
     } catch (error) {
       console.error('댓글 가져오기 오류:', error);
     }
   }
+  // **********************************************************************************************
 
   useEffect(() => {
     if (!id) return;
@@ -119,7 +127,9 @@ export default function PostEditorScreen() {
   }, [id]);
 
 
+  // **********************************************************************************************
   // 게시물 삭제(작성자만 허용)
+  // **********************************************************************************************
   const removePost = async() =>{
     if (!postId) return;
 
@@ -138,8 +148,13 @@ export default function PostEditorScreen() {
       alert("삭제에 실패했습니다.");
     }
   }
+  // **********************************************************************************************
 
-  // 댓글 등록
+
+
+  // **********************************************************************************************
+  // 댓글 등록 요청
+  // **********************************************************************************************
   const saveComment = async() =>{
     if (!comment.trim()) {
       alert("댓글을 입력해주세요.")
@@ -154,10 +169,6 @@ export default function PostEditorScreen() {
         comment: comment,
         createdAt: new Date().toISOString(),
       };
-
-      console.log('comments: ', comments);
-      
-      console.log('comments?.length: ', comments?.length);
       
       await addDoc(collection(db, "comments"), payload);
       updateCommentCount();
@@ -172,28 +183,29 @@ export default function PostEditorScreen() {
       alert("댓글 등록 중 오류가 발생했습니다.");
     }
   }
+  // **********************************************************************************************
 
+
+  // **********************************************************************************************
+  // 댓글 개수 업데이트
+  // **********************************************************************************************
   const updateCommentCount = async () => {
     try {
-      // posts 컬렉션에서 해당 postId로 문서 참조 가져오기
+      // posts 컬렉션에서 해당 postId와 일치하는 문서 가져오기
       const postRef = doc(db, "posts", postId);
-
-      // 해당 문서 가져오기
       const docSnap = await getDoc(postRef);
       
       // 일치하는 문서가 있는 경우에만 업데이트
       if (docSnap) {
-        const postDoc = docSnap;  // 첫 번째 일치 문서 선택
+        const postDoc = docSnap;
         
-        // 기존 commentCount를 가져와 업데이트
+        // 기존 댓글수에서 증가후 업데이트
         const newCommentCount = (comments?.length || 0) + 1;
-
-        // 문서 업데이트
         await updateDoc(postDoc.ref, {
           commentCount: newCommentCount
         });
 
-        console.log(`commentCount 업데이트 성공! 새로운 값: ${newCommentCount}`);
+        // console.log(`commentCount 업데이트 성공! 새로운 값: ${newCommentCount}`);
       } else {
         console.log('해당 postId에 해당하는 게시물이 없습니다.');
       }
@@ -201,6 +213,8 @@ export default function PostEditorScreen() {
       console.error('댓글 수 업데이트 중 오류 발생: ', error);
     }
   };
+  // **********************************************************************************************
+
 
   if (loading) return (
     <View style={styles.loadingContainer}>
@@ -208,6 +222,7 @@ export default function PostEditorScreen() {
       <Text style={styles.loadingText}>로딩 중...</Text>
     </View>
   );
+
   if (!post) return (
     <View style={styles.errorContainer}>
       <Text style={styles.errorText}>게시물을 찾을 수 없습니다.</Text>

@@ -13,10 +13,10 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      console.log("로그인 성공");
+      // console.log("로그인 성공");
       router.push("/Main") // 로그인 성공 후 메인 화면 이동
     } catch (e: any) {
-      console.log("e.code: ", e.code);      
+      // console.log("e.code: ", e.code);      
       if (e.code === "auth/user-not-found") {
         setError("이 계정은 존재하지 않습니다. 이메일을 확인해주세요.");
       } else if (e.code === "auth/wrong-password") {

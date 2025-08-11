@@ -47,7 +47,7 @@ export default function PostEditorScreen() {
   const isFocused = useIsFocused();
   
   useEffect(() => {
-    setPost(initialPost);
+    setPost(initialPost); // Input 초기화
     imagePickerRef.current?.clear(); // 이미지 초기화 호출
     
     // 화면이 포커스될 때 스크롤 위치를 상단으로 초기화
@@ -57,10 +57,15 @@ export default function PostEditorScreen() {
   },[isFocused])
   
 
+  // Input 상태 관리
   const handleChange = (field: keyof Post, value: string) => {
     setPost((prev) => ({ ...prev, [field]: value }));
   };
 
+
+  // **********************************************************************************************
+  // 게시물 등록 요청
+  // **********************************************************************************************
   const handleSubmit = async() => {        
     // console.log("폼 데이터:", post);
     // console.log("이미지 uri: ", post.thumbnailUrl);
@@ -80,8 +85,6 @@ export default function PostEditorScreen() {
 
     // 로딩 시작
     setIsLoading(true);
-
-    // Firestore 저장 로직    
 
     try {
       // 1) 로컬 이미지 => blob로 변환하여 업로드
@@ -128,6 +131,8 @@ export default function PostEditorScreen() {
       setIsLoading(false);
     }
   };
+  // **********************************************************************************************
+
 
   return (
     <SafeAreaView style={styles.safeArea}>
