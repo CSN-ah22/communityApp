@@ -1,20 +1,35 @@
 import { useRouter } from "expo-router";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { auth, db } from "../../firebase";
 
 export default function SignupScreen() {
   const router = useRouter();
   const [email, setEmail] = useState("");
+  const [emailCheck, setEmailCheck] = useState<string>(''); // 이메일 형식 검사
   const [password, setPassword] = useState("");
+  const [passWordCheck, setPassWordCheck] = useState<string>(''); // 비밀번호 길이 검사
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const scrollViewRef = useRef<ScrollView>(null);
+
   const handleSignup = async () => {
     try {
+      if(emailCheck.trim()){
+        alert("이메일 형식을 확인해주세요.")
+        return
+      }
+
+      if(passWordCheck.trim()){
+        alert("비밀번호 형식을 확인해주세요.")
+        return
+      }
+
+
       // 로딩 시작
       setIsLoading(true);
       setError("");
@@ -34,23 +49,53 @@ export default function SignupScreen() {
       router.push("/Main"); // 회원가입 후 로그인 화면 또는 메인 화면으로 이동
     } catch (e: any) {
       console.error("회원가입 에러:", e.message);
-      setError(e.message);
+      setError("회원 가입에 실패했습니다. 다시 시도해 주세요.");
     } finally {
       // 로딩 종료
       setIsLoading(false);
     }
   };
 
+  // 이메일 유효성 검사 함수
+  const validateEmail = (inputEmail: string) => {
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+    if (!emailRegex.test(inputEmail)) {
+      setEmailCheck("올바른 이메일 형식이 아닙니다.");
+    } else {
+      setEmailCheck(""); // 이메일 형식이 맞으면 오류 메시지 지우기
+    }
+  };
+
+  // 이메일 입력 시 유효성 검사와 상태 업데이트
+  const handleEmailChange = (inputEmail: string) => {
+    setEmail(inputEmail); // 이메일 상태 업데이트
+    validateEmail(inputEmail); // 이메일 유효성 검사
+  };
+
+  const validatePassword = (pwd: string) =>{
+    const size = 8;
+    if (pwd.length < 8) {
+      setPassWordCheck("비밀번호의 길이가 너무 짧습니다. 8자리 이상으로 입력해주세요.")
+    } else {
+      setPassWordCheck(""); // 이메일 형식이 맞으면 오류 메시지 지우기
+    }
+  }
+  const handlePasswordChange = (inputPassword: string) =>{
+    setPassword(inputPassword);
+    validatePassword(inputPassword);
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <StatusBar/>
       
       <KeyboardAvoidingView 
         style={styles.keyboardAvoidingView}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 48}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 10}
       >
         <ScrollView 
+          ref={scrollViewRef}
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -80,6 +125,7 @@ export default function SignupScreen() {
                   placeholderTextColor="#999"
                   value={name}
                   onChangeText={setName}
+                  autoFocus
                 />
               </View>
 
@@ -91,10 +137,11 @@ export default function SignupScreen() {
                   placeholder="이메일을 입력해주세요"
                   placeholderTextColor="#999"
                   value={email}
-                  onChangeText={setEmail}
+                  onChangeText={handleEmailChange}
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
+                {emailCheck ? <Text style={styles.errorText}>{emailCheck}</Text> : null}
               </View>
 
               {/* 비밀번호 입력 */}
@@ -105,10 +152,17 @@ export default function SignupScreen() {
                   placeholder="비밀번호를 입력해주세요"
                   placeholderTextColor="#999"
                   value={password}
-                  onChangeText={setPassword}
+                  onChangeText={handlePasswordChange}
                   secureTextEntry
-                  autoCapitalize="none"
+                  autoCapitalize="none"                  
+                  onFocus={() => {
+                    // 비밀번호 포커스가 되면 하단으로 자동 스크롤
+                    setTimeout(() => {
+                      scrollViewRef.current?.scrollToEnd({ animated: true });
+                    }, 200);
+                  }}
                 />
+                {passWordCheck ? <Text style={styles.errorText}>{passWordCheck}</Text> : null}
               </View>
 
               {/* 회원가입 버튼 */}
@@ -145,7 +199,7 @@ export default function SignupScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
+    // backgroundColor: '#fff',
   },
   keyboardAvoidingView: {
     flex: 1,
