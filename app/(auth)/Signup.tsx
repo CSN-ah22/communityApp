@@ -15,6 +15,8 @@ export default function SignupScreen() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // 비밀번호 입력란에 대한 ref
+  const passwordInputRef = useRef<TextInput>(null);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const handleSignup = async () => {
@@ -28,7 +30,6 @@ export default function SignupScreen() {
         alert("비밀번호 형식을 확인해주세요.")
         return
       }
-
 
       // 로딩 시작
       setIsLoading(true);
@@ -56,13 +57,21 @@ export default function SignupScreen() {
     }
   };
 
-  // 이메일 유효성 검사 함수
+
+
+  // **********************************************************************************************
+  // 이메일 유효성 검사 및 상태 관리
+  // **********************************************************************************************
   const validateEmail = (inputEmail: string) => {
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
     if (!emailRegex.test(inputEmail)) {
       setEmailCheck("올바른 이메일 형식이 아닙니다.");
     } else {
       setEmailCheck(""); // 이메일 형식이 맞으면 오류 메시지 지우기
+      //  비밀번호 입력란에 자동으로 포커스
+      setTimeout(() => {
+        passwordInputRef.current?.focus();
+      }, 100);
     }
   };
 
@@ -71,19 +80,28 @@ export default function SignupScreen() {
     setEmail(inputEmail); // 이메일 상태 업데이트
     validateEmail(inputEmail); // 이메일 유효성 검사
   };
+  // **********************************************************************************************
 
+
+  // **********************************************************************************************
+  // 비밀번호 유효성 검사 및 상태 관리
+  // **********************************************************************************************
   const validatePassword = (pwd: string) =>{
     const size = 8;
-    if (pwd.length < 8) {
+    if (pwd.length < size) {
       setPassWordCheck("비밀번호의 길이가 너무 짧습니다. 8자리 이상으로 입력해주세요.")
     } else {
-      setPassWordCheck(""); // 이메일 형식이 맞으면 오류 메시지 지우기
+      setPassWordCheck(""); // 비밀번호 형식이 맞으면 오류 메시지 지우기
     }
   }
+
   const handlePasswordChange = (inputPassword: string) =>{
     setPassword(inputPassword);
     validatePassword(inputPassword);
   };
+  // **********************************************************************************************
+
+
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -148,6 +166,7 @@ export default function SignupScreen() {
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>비밀번호</Text>
                 <TextInput
+                  ref={passwordInputRef}
                   style={styles.input}
                   placeholder="비밀번호를 입력해주세요"
                   placeholderTextColor="#999"

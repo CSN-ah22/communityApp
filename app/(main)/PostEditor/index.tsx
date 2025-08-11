@@ -146,10 +146,7 @@ export default function PostEditorScreen() {
         <ScrollView 
           ref={scrollViewRef}
           style={styles.container} 
-          showsVerticalScrollIndicator={false}
-          onContentSizeChange={() => {
-            scrollViewRef.current?.scrollToEnd({ animated: true });
-          }}
+          showsVerticalScrollIndicator={false}          
         >
           {/* 제목 입력 */}
           <View style={styles.inputSection}>
